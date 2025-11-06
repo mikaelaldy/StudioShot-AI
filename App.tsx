@@ -86,13 +86,37 @@ export default function App() {
   const [generateStep, setGenerateStep] = useState<GenerateStep>(GenerateStep.PROMPT);
   const [generatePrompt, setGeneratePrompt] = useState('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [previousGeneratedImage, setPreviousGeneratedImage] = useState<string | null>(null);
+  const [initialGeneratedImage, setInitialGeneratedImage] = useState<string | null>(null);
 
   // Shared State
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
+  const [refinePrompt, setRefinePrompt] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [gallery, setGallery] = useLocalStorage<GalleryItem[]>('studioshot-gallery', []);
 
   const dropzoneRef = useRef<HTMLDivElement>(null);
+
+  const resetTransform = useCallback(() => {
+    setTransformStep(TransformStep.UPLOAD);
+    setOriginalImage(null);
+    setEditedImage(null);
+    setPrompt('');
+    setSuggestions([]);
+    setRefinePrompt('');
+    setError(null);
+  }, []);
+
+  const resetGenerate = useCallback(() => {
+    setGenerateStep(GenerateStep.PROMPT);
+    setGeneratedImage(null);
+    setPreviousGeneratedImage(null);
+    setInitialGeneratedImage(null);
+    setGeneratePrompt('');
+    setRefinePrompt('');
+    setError(null);
+  }, []);
 
   const handleImageUpload = useCallback((files: FileList | null) => {
     const file = files?.[0];
@@ -176,9 +200,11 @@ export default function App() {
     if (!generatePrompt) return;
     setIsLoading(true);
     setError(null);
+    setPreviousGeneratedImage(null);
     try {
         const result = await generateImage(generatePrompt);
         setGeneratedImage(result);
+        setInitialGeneratedImage(result);
         setGenerateStep(GenerateStep.RESULT);
 
         const newGalleryItem: GalleryItem = {
@@ -196,21 +222,64 @@ export default function App() {
     }
   }, [generatePrompt, setGallery]);
 
-  const resetTransform = () => {
-    setTransformStep(TransformStep.UPLOAD);
-    setOriginalImage(null);
-    setEditedImage(null);
-    setPrompt('');
-    setSuggestions([]);
+  const handleRefineTransform = useCallback(async () => {
+    if (!editedImage || !refinePrompt) return;
+    setIsRefining(true);
     setError(null);
-  };
+    try {
+        const result = await editImage(editedImage, refinePrompt);
+        setEditedImage(result);
+        setRefinePrompt(''); // Clear prompt after use
+        
+        const newGalleryItem: GalleryItem = {
+            id: new Date().toISOString(),
+            src: result,
+            prompt: refinePrompt,
+            type: 'edited',
+            originalSrc: originalImage?.dataUrl,
+        };
+        setGallery(prev => [newGalleryItem, ...prev]);
 
-  const resetGenerate = () => {
-    setGenerateStep(GenerateStep.PROMPT);
-    setGeneratedImage(null);
-    setGeneratePrompt('');
+    } catch (err: any) {
+        setError(err.message || 'Failed to refine image.');
+    } finally {
+        setIsRefining(false);
+    }
+  }, [editedImage, refinePrompt, originalImage, setGallery]);
+
+  const handleRefineGenerate = useCallback(async () => {
+    if (!generatedImage || !refinePrompt) return;
+    setIsRefining(true);
     setError(null);
-  };
+    try {
+        setPreviousGeneratedImage(generatedImage);
+        const result = await editImage(generatedImage, refinePrompt);
+        setGeneratedImage(result);
+        setRefinePrompt('');
+
+        const newGalleryItem: GalleryItem = {
+            id: new Date().toISOString(),
+            src: result,
+            prompt: refinePrompt,
+            type: 'edited',
+            originalSrc: initialGeneratedImage ?? generatedImage,
+        };
+        setGallery(prev => [newGalleryItem, ...prev]);
+        
+    } catch (err: any) {
+        setError(err.message || 'Failed to refine image.');
+    } finally {
+        setIsRefining(false);
+    }
+  }, [generatedImage, refinePrompt, initialGeneratedImage, setGallery]);
+
+
+  const handleGoToHome = useCallback(() => {
+    setShowApp(false);
+    resetTransform();
+    resetGenerate();
+    setActiveTab(Tab.TRANSFORM);
+  }, [resetTransform, resetGenerate]);
   
   const deleteFromGallery = (id: string) => {
     setGallery(gallery.filter(item => item.id !== id));
@@ -270,7 +339,7 @@ export default function App() {
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
                   placeholder="e.g., A professional studio shot of the product on a marble surface with soft, natural lighting..."
-                  className="w-full h-32 p-2 border border-input rounded-md text-sm disabled:bg-slate-100 disabled:cursor-not-allowed"
+                  className="w-full h-32 p-2 border border-input rounded-md text-sm bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                   disabled={isLoading || isAnalyzing}
                 />
               </div>
@@ -304,9 +373,11 @@ export default function App() {
         );
       case TransformStep.RESULT:
           return (
-              <div className="max-w-4xl mx-auto text-center">
-                  <h2 className="text-3xl font-bold tracking-tight mb-4">Transformation Complete!</h2>
-                  <p className="text-slate-600 mb-8">Use the slider to compare your original photo with the AI-enhanced version.</p>
+              <div className="max-w-4xl mx-auto">
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold tracking-tight mb-4">Transformation Complete!</h2>
+                    <p className="text-slate-600 mb-8">Use the slider to compare your original photo with the AI-enhanced version.</p>
+                  </div>
                   <div className="rounded-lg overflow-hidden ring-1 ring-slate-200">
                       {originalImage && editedImage && (
                           <ReactCompareImage leftImage={originalImage.dataUrl} rightImage={editedImage} />
@@ -318,6 +389,20 @@ export default function App() {
                           <DownloadIcon className="w-4 h-4 mr-2" />
                           Download
                       </Button>
+                  </div>
+
+                  <div className="mt-10 pt-8 border-t border-slate-200">
+                     <h3 className="text-xl font-semibold text-center mb-4">Refine Your Image</h3>
+                     <textarea 
+                        value={refinePrompt}
+                        onChange={(e) => setRefinePrompt(e.target.value)}
+                        placeholder="Not quite right? Describe what you'd like to change... e.g., 'Make the background darker' or 'Add a reflection'"
+                        className="w-full h-24 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
+                        disabled={isRefining}
+                     />
+                     <Button onClick={handleRefineTransform} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
+                        {isRefining ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
+                    </Button>
                   </div>
               </div>
           );
@@ -335,7 +420,7 @@ export default function App() {
                         value={generatePrompt}
                         onChange={(e) => setGeneratePrompt(e.target.value)}
                         placeholder="A sleek, modern smartwatch on a dark, textured background with dramatic side lighting highlighting the metallic finish..."
-                        className="w-full h-40 p-3 border border-input rounded-md text-base disabled:bg-slate-100 disabled:cursor-not-allowed"
+                        className="w-full h-40 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                         disabled={isLoading}
                     />
                     <Button onClick={handleGenerate} disabled={isLoading || !generatePrompt} className="mt-6 w-full md:w-auto">
@@ -345,17 +430,39 @@ export default function App() {
             );
         case GenerateStep.RESULT:
             return (
-                <div className="max-w-2xl mx-auto text-center">
-                    <h2 className="text-3xl font-bold tracking-tight mb-4">Image Generated!</h2>
-                    <p className="text-slate-600 mb-8">Here is the image created from your prompt.</p>
-                    <div className="aspect-square w-full bg-slate-100 rounded-lg overflow-hidden ring-1 ring-slate-200">
-                        {generatedImage && <img src={generatedImage} alt={generatePrompt} className="w-full h-full object-contain" />}
+                <div className="max-w-4xl mx-auto">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold tracking-tight mb-4">Image Generated!</h2>
+                        <p className="text-slate-600 mb-8">Here is the image created from your prompt. Refine it further if needed.</p>
                     </div>
+
+                    <div className="rounded-lg overflow-hidden ring-1 ring-slate-200">
+                        {previousGeneratedImage && generatedImage ? (
+                           <ReactCompareImage leftImage={previousGeneratedImage} rightImage={generatedImage} />
+                        ) : generatedImage && (
+                           <img src={generatedImage} alt={generatePrompt} className="w-full h-full object-contain" />
+                        )}
+                    </div>
+
                     <div className="mt-8 flex justify-center gap-4">
                         <Button variant="secondary" onClick={resetGenerate}>Generate Another</Button>
                         <Button onClick={() => downloadImage(generatedImage!, 'studioshot-generated.png')}>
                             <DownloadIcon className="w-4 h-4 mr-2" />
                             Download
+                        </Button>
+                    </div>
+
+                    <div className="mt-10 pt-8 border-t border-slate-200">
+                         <h3 className="text-xl font-semibold text-center mb-4">Refine Your Image</h3>
+                         <textarea 
+                            value={refinePrompt}
+                            onChange={(e) => setRefinePrompt(e.target.value)}
+                            placeholder="e.g., 'Change the watch face to blue' or 'Add a leather strap'"
+                            className="w-full h-24 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
+                            disabled={isRefining}
+                         />
+                         <Button onClick={handleRefineGenerate} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
+                            {isRefining ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
                         </Button>
                     </div>
                 </div>
@@ -396,9 +503,9 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <header className="border-b border-slate-200">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <button onClick={handleGoToHome} className="text-2xl font-bold flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md">
             <SparklesIcon className="w-6 h-6 text-primary"/> StudioShot AI
-          </h1>
+          </button>
           <nav className="flex items-center space-x-2 bg-slate-100 p-1 rounded-lg">
              {[
                { label: 'Transform', icon: <ArrowRightIcon className="w-4 h-4" />, tab: Tab.TRANSFORM },
