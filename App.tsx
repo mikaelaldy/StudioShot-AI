@@ -51,14 +51,16 @@ const Button: React.FC<ButtonProps> = ({ children, className, variant = 'primary
   return <button className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`} {...props}>{children}</button>;
 };
 
-const Spinner: React.FC = () => (
-  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current"></div>
+const ProgressBar: React.FC = () => (
+    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+        <div className="bg-blue-600 h-2.5 rounded-full w-full animate-pulse"></div>
+    </div>
 );
 
 const LoadingState: React.FC<{ message: string }> = ({ message }) => (
     <div className="w-full max-w-2xl mx-auto text-center p-8 border-2 border-dashed border-slate-300 rounded-xl">
         <div className="flex flex-col items-center justify-center gap-4">
-            <Spinner />
+            <ProgressBar />
             <p className="text-slate-600 font-medium">{message}</p>
         </div>
     </div>
@@ -366,7 +368,7 @@ export default function App() {
                 )}
               </div>
               <Button onClick={handleTransform} disabled={isLoading || isAnalyzing} className="w-full">
-                {isLoading ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Transform Image</>}
+                {isLoading ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Transform Image</>}
               </Button>
             </div>
           </div>
@@ -401,7 +403,7 @@ export default function App() {
                         disabled={isRefining}
                      />
                      <Button onClick={handleRefineTransform} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
-                        {isRefining ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
+                        {isRefining ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
                     </Button>
                   </div>
               </div>
@@ -424,7 +426,7 @@ export default function App() {
                         disabled={isLoading}
                     />
                     <Button onClick={handleGenerate} disabled={isLoading || !generatePrompt} className="mt-6 w-full md:w-auto">
-                        {isLoading ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Generate Image</>}
+                        {isLoading ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Generate Image</>}
                     </Button>
                 </div>
             );
@@ -462,7 +464,7 @@ export default function App() {
                             disabled={isRefining}
                          />
                          <Button onClick={handleRefineGenerate} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
-                            {isRefining ? <Spinner /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
+                            {isRefining ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
                         </Button>
                     </div>
                 </div>

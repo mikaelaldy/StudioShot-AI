@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactCompareImage from 'react-compare-image';
 import { SparklesIcon, UploadIcon, ImageIcon, ArrowRightIcon } from './Icons';
 
@@ -27,7 +27,24 @@ const Button: React.FC<ButtonProps> = ({ children, className, variant = 'primary
 const beforeImage = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop";
 const afterImage = "https://storage.googleapis.com/aistudio-marketplace-public-assets/assets/fc01dc07-0639-4467-a82f-b12e0e5604b9/product_photography_02.png";
 
+const carouselImages = [
+  '/crocs before after.jpeg',
+  '/example before after fried rice.png'
+];
+
 export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans">
       <header className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-10">
@@ -93,12 +110,37 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
 
         <section className="py-20 px-4">
              <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
-                <div className="rounded-xl shadow-lg overflow-hidden">
-                     <img 
-                        src="https://storage.googleapis.com/aistudio-marketplace-public-assets/assets/fc01dc07-0639-4467-a82f-b12e0e5604b9/product_photography_10.png" 
-                        alt="A collection of professional product shots"
-                        className="w-full h-full object-cover"
-                    />
+                <div 
+                    className="rounded-xl shadow-lg overflow-hidden relative"
+                    onMouseEnter={() => setIsPaused(true)}
+                    onMouseLeave={() => setIsPaused(false)}
+                >
+                    <div className="relative w-full h-96">
+                        {carouselImages.map((image, index) => (
+                            <img
+                                key={index}
+                                src={image}
+                                alt={`A collection of professional product shots ${index + 1}`}
+                                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+                                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                        {carouselImages.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentSlide(index)}
+                                className={`w-2 h-2 rounded-full transition-all ${
+                                    index === currentSlide
+                                        ? 'bg-white w-6'
+                                        : 'bg-white/50 hover:bg-white/75'
+                                }`}
+                                aria-label={`Go to slide ${index + 1}`}
+                            />
+                        ))}
+                    </div>
                 </div>
                 <div>
                     <h3 className="text-3xl font-bold tracking-tight">Powerful Features for Perfect Shots</h3>
@@ -139,7 +181,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
             <Button 
                 onClick={onGetStarted} 
                 size="lg" 
-                className="mt-10 bg-white text-primary hover:bg-slate-200"
+                className="mt-10 bg-white text-slate-900 hover:bg-slate-200"
             >
               Launch StudioShot AI
             </Button>
