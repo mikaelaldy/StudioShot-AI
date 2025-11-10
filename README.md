@@ -74,7 +74,7 @@ All of this happens in seconds, not hours, and costs a fraction of traditional p
 ## 🎨 Key Features
 
 ### 1. **AI-Powered Image Analysis**
-- Upload any product photo (JPG, PNG, WebP)
+- Upload any product photo (JPG or PNG)
 - Gemini 2.5 Pro analyzes the image content, composition, and context
 - Receives 4 intelligent, contextual prompt suggestions for transformation
 - Suggestions include diverse styles: minimalist, cinematic, e-commerce, dramatic lighting
@@ -102,15 +102,11 @@ All of this happens in seconds, not hours, and costs a fraction of traditional p
 - Automatic saving of all generated and transformed images
 - Local storage persistence (no server uploads needed)
 - Download high-resolution results
-- Track prompt history for each image
-- Quick delete and re-download options
 
 ### 6. **Modern, Intuitive UI**
-- Clean, professional interface built with React 19
 - Responsive design works on desktop, tablet, and mobile
 - Drag-and-drop file upload
 - Real-time progress indicators
-- Beautiful landing page showcasing features
 
 ---
 
@@ -384,7 +380,6 @@ npm run preview
 **4. Prompt Engineering Lessons**
 - Specific, detailed prompts yield better results than vague ones
 - Including style keywords ("cinematic", "minimalist") guides the AI effectively
-- Structured JSON responses from Gemini Pro ensure consistent UX
 
 ### Challenges Overcome
 
@@ -398,15 +393,6 @@ npm run preview
 - Used React hooks and careful state design to prevent bugs
 - Separate state trees for Transform and Generate modes
 
-**3. Performance Optimization**
-- Large images can be slow to encode/decode
-- Implemented loading states and cancellation for better UX
-- LocalStorage has size limits - users warned if gallery gets too large
-
-**4. Cloud Run Deployment**
-- Needed to containerize the Vite app properly
-- Environment variables must be injected at build time for browser access
-- Successfully deployed with automatic HTTPS and custom domain support
 
 ### Key Findings
 
@@ -415,10 +401,6 @@ npm run preview
 - Iteration speed increased from days (reshoot) to seconds (AI refinement)
 - Consistency across product lines is easily maintained
 
-**Technical Performance:**
-- Average transformation time: 3-5 seconds
-- Average generation time: 5-8 seconds
-- 95% of prompts produce usable results on first try
 
 **User Experience:**
 - Non-technical users successfully created professional images
@@ -479,3 +461,4 @@ This project was created for the Cloud Run Hackathon. MIT License - see reposito
 [🚀 Try StudioShot AI](https://studioshot-ai-760988867361.us-west1.run.app/) | [⭐ Star on GitHub](https://github.com/mikaelaldy/StudioShot-AI)
 
 </div>
+
