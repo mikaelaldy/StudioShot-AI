@@ -17,7 +17,7 @@
 - **🚀 Live Application**: [https://studioshot-ai-760988867361.us-west1.run.app/](https://studioshot-ai-760988867361.us-west1.run.app/)
 - **💻 GitHub Repository**: [https://github.com/mikaelaldy/StudioShot-AI](https://github.com/mikaelaldy/StudioShot-AI)
 - **🎨 AI Studio App**: [https://ai.studio/apps/drive/1jw_DxphHEMww-aoOwhXFpb4LO78p5Uxq](https://ai.studio/apps/drive/1jw_DxphHEMww-aoOwhXFpb4LO78p5Uxq)
-- **🎥 Demo Video**: *Coming Soon*
+- **🎥 Demo Video**: [https://youtu.be/UFgY3jE72lU?si=2pckP70YLLCT8cUj](https://youtu.be/UFgY3jE72lU?si=2pckP70YLLCT8cUj)
 
 ---
 
