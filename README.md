@@ -351,7 +351,7 @@ npm run preview
 - ✅ Comprehensive text description of features and functionality
 - ✅ Public code repository on GitHub
 - ✅ Architecture diagram (text-based, ready for visualization)
-- ✅ Demo video (*to be uploaded*)
+- ✅ Demo video
 - ✅ English language support
 - ✅ Uses multiple Google AI models (bonus points)
 - ✅ AI Studio prompts shared via link
