@@ -346,7 +346,7 @@ npm run preview
 - ✅ **Gemini API**: Three models (2.5 Pro, 2.5 Flash Image, Imagen 4.0)
 
 **Project Requirements Met:**
-- ✅ Built with required Google developer tools (Gemini API, AI Studio)
+- ✅ Built with required Google developer tools (Gemini API, AI Studio, and gemini-cli)
 - ✅ Hosted publicly on Cloud Run
 - ✅ Comprehensive text description of features and functionality
 - ✅ Public code repository on GitHub
