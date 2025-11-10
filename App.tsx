@@ -52,16 +52,21 @@ const Button: React.FC<ButtonProps> = ({ children, className, variant = 'primary
 };
 
 const ProgressBar: React.FC = () => (
-    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-        <div className="bg-blue-600 h-2.5 rounded-full w-full animate-pulse"></div>
+    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+        <div className="bg-primary h-2 rounded-full w-full animate-pulse"></div>
     </div>
 );
 
-const LoadingState: React.FC<{ message: string }> = ({ message }) => (
+const LoadingState: React.FC<{ message: string, onCancel?: () => void }> = ({ message, onCancel }) => (
     <div className="w-full max-w-2xl mx-auto text-center p-8 border-2 border-dashed border-slate-300 rounded-xl">
         <div className="flex flex-col items-center justify-center gap-4">
-            <ProgressBar />
             <p className="text-slate-600 font-medium">{message}</p>
+            <ProgressBar />
+            {onCancel && (
+              <Button variant="secondary" onClick={onCancel} className="mt-4">
+                Cancel
+              </Button>
+            )}
         </div>
     </div>
 );
@@ -108,6 +113,10 @@ export default function App() {
     setSuggestions([]);
     setRefinePrompt('');
     setError(null);
+    // FIX: reset all loading states on cancel
+    setIsAnalyzing(false);
+    setIsLoading(false);
+    setIsRefining(false);
   }, []);
 
   const resetGenerate = useCallback(() => {
@@ -118,6 +127,9 @@ export default function App() {
     setGeneratePrompt('');
     setRefinePrompt('');
     setError(null);
+    // FIX: reset all loading states on cancel
+    setIsLoading(false);
+    setIsRefining(false);
   }, []);
 
   const handleImageUpload = useCallback((files: FileList | null) => {
@@ -304,7 +316,7 @@ export default function App() {
     switch (transformStep) {
       case TransformStep.UPLOAD:
         return isAnalyzing ? (
-            <LoadingState message="Analyzing your image..." />
+            <LoadingState message="Analyzing your image..." onCancel={resetTransform} />
         ) : (
           <div 
             ref={dropzoneRef}
@@ -330,7 +342,7 @@ export default function App() {
               <div className="aspect-square w-full bg-slate-100 rounded-lg overflow-hidden ring-1 ring-slate-200">
                 {originalImage && <img src={originalImage.dataUrl} alt="Original product" className="w-full h-full object-contain" />}
               </div>
-               <Button variant="secondary" onClick={resetTransform}>Upload New Image</Button>
+               <Button variant="secondary" onClick={resetTransform} disabled={isLoading || isAnalyzing}>Upload New Image</Button>
             </div>
             <div className="space-y-6">
               <h3 className="text-xl font-semibold">AI Prompt Assistant</h3>
@@ -353,7 +365,8 @@ export default function App() {
                       <button 
                         key={i} 
                         onClick={() => setPrompt(s)} 
-                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                        disabled={isLoading || isAnalyzing}
+                        className={`w-full text-left p-3 rounded-lg text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                           prompt === s 
                           ? 'bg-primary/10 text-primary ring-1 ring-primary' 
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -367,9 +380,17 @@ export default function App() {
                     <p className="text-sm text-slate-500">Upload an image to get AI suggestions.</p>
                 )}
               </div>
-              <Button onClick={handleTransform} disabled={isLoading || isAnalyzing} className="w-full">
-                {isLoading ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Transform Image</>}
-              </Button>
+              {isLoading ? (
+                <div className="w-full space-y-2 pt-2">
+                    <p className="text-sm text-center text-slate-600">Transforming your image...</p>
+                    <ProgressBar />
+                    <Button variant="secondary" onClick={resetTransform} className="w-full mt-2">Cancel</Button>
+                </div>
+              ) : (
+                <Button onClick={handleTransform} disabled={isAnalyzing || !prompt} className="w-full">
+                    <SparklesIcon className="w-4 h-4 mr-2" /> Transform Image
+                </Button>
+              )}
             </div>
           </div>
         );
@@ -402,9 +423,17 @@ export default function App() {
                         className="w-full h-24 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                         disabled={isRefining}
                      />
-                     <Button onClick={handleRefineTransform} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
-                        {isRefining ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
-                    </Button>
+                     {isRefining ? (
+                       <div className="mt-4 w-full md:w-auto space-y-2">
+                          <p className="text-sm text-center text-slate-600">Refining...</p>
+                          <ProgressBar />
+                          <Button variant="secondary" onClick={() => { setIsRefining(false); setError(null); }} className="w-full mt-2">Cancel</Button>
+                      </div>
+                     ) : (
+                      <Button onClick={handleRefineTransform} disabled={!refinePrompt} className="mt-4 w-full md:w-auto">
+                          <SparklesIcon className="w-4 h-4 mr-2" /> Refine
+                      </Button>
+                     )}
                   </div>
               </div>
           );
@@ -425,9 +454,17 @@ export default function App() {
                         className="w-full h-40 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                         disabled={isLoading}
                     />
-                    <Button onClick={handleGenerate} disabled={isLoading || !generatePrompt} className="mt-6 w-full md:w-auto">
-                        {isLoading ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Generate Image</>}
-                    </Button>
+                    {isLoading ? (
+                        <div className="w-full md:w-auto space-y-2 mt-6">
+                            <p className="text-sm text-center text-slate-600">Generating image...</p>
+                            <ProgressBar />
+                            <Button variant="secondary" onClick={resetGenerate} className="w-full mt-2">Cancel</Button>
+                        </div>
+                    ) : (
+                        <Button onClick={handleGenerate} disabled={!generatePrompt} className="mt-6 w-full md:w-auto">
+                            <SparklesIcon className="w-4 h-4 mr-2" /> Generate Image
+                        </Button>
+                    )}
                 </div>
             );
         case GenerateStep.RESULT:
@@ -463,9 +500,17 @@ export default function App() {
                             className="w-full h-24 p-3 border border-input rounded-md text-base bg-white disabled:bg-slate-100 disabled:cursor-not-allowed"
                             disabled={isRefining}
                          />
-                         <Button onClick={handleRefineGenerate} disabled={isRefining || !refinePrompt} className="mt-4 w-full md:w-auto">
-                            {isRefining ? <ProgressBar /> : <><SparklesIcon className="w-4 h-4 mr-2" /> Refine</>}
-                        </Button>
+                         {isRefining ? (
+                            <div className="w-full md:w-auto space-y-2 mt-4">
+                                <p className="text-sm text-center text-slate-600">Refining...</p>
+                                <ProgressBar />
+                                <Button variant="secondary" onClick={() => { setIsRefining(false); setError(null); }} className="w-full mt-2">Cancel</Button>
+                            </div>
+                         ) : (
+                            <Button onClick={handleRefineGenerate} disabled={!refinePrompt} className="mt-4 w-full md:w-auto">
+                                <SparklesIcon className="w-4 h-4 mr-2" /> Refine
+                            </Button>
+                         )}
                     </div>
                 </div>
             );

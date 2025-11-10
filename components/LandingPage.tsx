@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import ReactCompareImage from 'react-compare-image';
-import { SparklesIcon, UploadIcon, ImageIcon, ArrowRightIcon } from './Icons';
+import { SparklesIcon, UploadIcon, ImageIcon, ArrowRightIcon, CompassIcon } from './Icons';
+import { 
+  crocsBefore, 
+  crocsAfter, 
+  friedRiceBefore, 
+  friedRiceAfter,
+  perfumeBefore,
+  perfumeAfter,
+  watchBefore,
+  watchAfter,
+  plantBefore,
+  plantAfter
+} from './imageData';
 
 // NOTE: This Button component is duplicated from App.tsx.
 // For a larger application, it would be beneficial to move this
@@ -24,12 +36,49 @@ const Button: React.FC<ButtonProps> = ({ children, className, variant = 'primary
   return <button className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`} {...props}>{children}</button>;
 };
 
-const beforeImage = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop";
-const afterImage = "https://storage.googleapis.com/aistudio-marketplace-public-assets/assets/fc01dc07-0639-4467-a82f-b12e0e5604b9/product_photography_02.png";
+const beforeImage = crocsBefore;
+const afterImage = crocsAfter;
 
-const carouselImages = [
-  '/crocs before after.jpeg',
-  '/example before after fried rice.png'
+const carouselSlides = [
+  {
+    before: friedRiceBefore,
+    after: friedRiceAfter,
+    leftImageAlt: "Before: A plate of home-cooked fried rice.",
+    rightImageAlt: "After: The same fried rice professionally photographed with dramatic lighting.",
+  },
+  {
+    before: crocsBefore,
+    after: crocsAfter,
+    leftImageAlt: "Before: A person holding red crocs in front of a bush.",
+    rightImageAlt: "After: The red crocs professionally photographed on a clean white background.",
+  },
+  {
+    before: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1887&auto=format&fit=crop",
+    after: "https://storage.googleapis.com/aistudio-marketplace-public-assets/assets/0d96d926-7333-4340-9f5a-5f3366c82f42/product_photography_05.png",
+    leftImageAlt: "Before: Skincare product in a simple setting",
+    rightImageAlt: "After: Skincare product in a professional studio setting with water splashes",
+  }
+];
+
+const galleryImages = [
+    {
+        before: perfumeBefore,
+        after: perfumeAfter,
+        leftAlt: "Before: A perfume bottle on a plain surface.",
+        rightAlt: "After: A professional studio shot of the perfume bottle with dramatic lighting and water effects.",
+    },
+    {
+        before: watchBefore,
+        after: watchAfter,
+        leftAlt: "Before: A simple photo of a wristwatch.",
+        rightAlt: "After: A sleek, professional photograph of the wristwatch on a dark, minimalist background.",
+    },
+    {
+        before: plantBefore,
+        after: plantAfter,
+        leftAlt: "Before: A potted plant in a home setting.",
+        rightAlt: "After: The potted plant isolated on a clean, studio-style pastel background.",
+    }
 ];
 
 export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStarted }) => {
@@ -40,14 +89,15 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
     if (isPaused) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-    }, 3000);
+      setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, carouselSlides.length]);
+
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans">
-      <header className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-10">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-30">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <SparklesIcon className="w-6 h-6 text-primary"/> StudioShot AI
@@ -71,7 +121,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
               Get Started for Free
             </Button>
             <div className="max-w-4xl mx-auto mt-16 rounded-xl overflow-hidden ring-1 ring-slate-200 shadow-2xl bg-slate-100">
-              <ReactCompareImage leftImage={beforeImage} rightImage={afterImage} />
+              <ReactCompareImage leftImage={beforeImage} rightImage={afterImage} leftImageAlt="Before: Red clogs held in front of green foliage." rightImageAlt="After: The same red clogs professionally photographed against a clean white background."/>
             </div>
           </div>
         </section>
@@ -115,20 +165,28 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
                     onMouseEnter={() => setIsPaused(true)}
                     onMouseLeave={() => setIsPaused(false)}
                 >
-                    <div className="relative w-full h-96">
-                        {carouselImages.map((image, index) => (
-                            <img
+                    <div className="relative w-full aspect-square bg-slate-100">
+                        {carouselSlides.map((slide, index) => (
+                            <div
                                 key={index}
-                                src={image}
-                                alt={`A collection of professional product shots ${index + 1}`}
-                                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-                                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                                className={`absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out ${
+                                    index === currentSlide ? 'opacity-100 z-10' : 'opacity-0'
                                 }`}
-                            />
+                                aria-hidden={index !== currentSlide}
+                            >
+                                <div className="w-full h-full">
+                                    <ReactCompareImage 
+                                        leftImage={slide.before} 
+                                        rightImage={slide.after} 
+                                        leftImageAlt={slide.leftImageAlt}
+                                        rightImageAlt={slide.rightImageAlt}
+                                    />
+                                </div>
+                            </div>
                         ))}
                     </div>
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                        {carouselImages.map((_, index) => (
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
+                        {carouselSlides.map((_, index) => (
                             <button
                                 key={index}
                                 onClick={() => setCurrentSlide(index)}
@@ -147,7 +205,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
                     <p className="mt-4 text-slate-600">StudioShot is more than just a filter. It's a suite of AI-powered tools designed for e-commerce success.</p>
                     <ul className="mt-8 space-y-4">
                         <li className="flex gap-4">
-                            <SparklesIcon className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+                            <CompassIcon className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
                             <div>
                                 <h4 className="font-semibold">AI Prompt Assistant</h4>
                                 <p className="text-slate-600">Never get stuck for ideas. Get intelligent suggestions based on your image to craft the perfect prompt.</p>
@@ -170,6 +228,29 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
                     </ul>
                 </div>
              </div>
+        </section>
+
+        <section className="py-20 px-4 bg-slate-50">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold tracking-tight">Explore the Possibilities</h3>
+              <p className="mt-4 max-w-2xl mx-auto text-slate-600">
+                See how StudioShot AI can elevate different types of products with just a simple prompt.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {galleryImages.map((image, index) => (
+                <div key={index} className="rounded-xl overflow-hidden ring-1 ring-slate-200 shadow-lg bg-white">
+                  <ReactCompareImage 
+                    leftImage={image.before} 
+                    rightImage={image.after} 
+                    leftImageAlt={image.leftAlt}
+                    rightImageAlt={image.rightAlt}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="py-20 bg-slate-800 text-white">
