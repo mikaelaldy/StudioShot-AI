@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { SparklesIcon, UploadIcon, ImageIcon, ArrowRightIcon } from './Icons';
 import { 
@@ -33,7 +34,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
       <header className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-slate-200 z-30">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <SparklesIcon className="w-6 h-6 text-primary"/> StudioShot AI
+            <SparklesIcon className="w-6 h-6 text-primary"/> Sellshot AI
           </h1>
           <Button onClick={onGetStarted}>
             Launch App <ArrowRightIcon className="w-4 h-4 ml-2" />
@@ -99,7 +100,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
                 </div>
                 <div>
                     <h3 className="text-3xl font-bold tracking-tight">Powerful Features for Perfect Shots</h3>
-                    <p className="mt-4 text-slate-600">StudioShot is more than just a filter. It's a suite of AI-powered tools designed for e-commerce success.</p>
+                    <p className="mt-4 text-slate-600">Sellshot is more than just a filter. It's a suite of AI-powered tools designed for e-commerce success.</p>
                     <ul className="mt-8 space-y-4">
                         <li className="flex gap-4">
                             <SparklesIcon className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
@@ -138,7 +139,7 @@ export const LandingPage: React.FC<{ onGetStarted: () => void }> = ({ onGetStart
                 size="lg" 
                 className="mt-10 bg-white text-slate-900 hover:bg-slate-200"
             >
-              Launch StudioShot AI
+              Launch Sellshot AI
             </Button>
           </div>
         </section>
